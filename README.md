@@ -18,6 +18,16 @@ This is a collaborative project where we design an autonomous robot that can:
 - Arduino / Raspberry Pi (optional)
 - GitHub for version control
 
+## 🧠 Core Logic
+
+### 🔹 robot_control/main_control.py
+This script handles the **core control logic** of the robot:
+
+- Controls motor movement (forward, left, right, stop)
+- Reads distance from the ultrasonic sensor to detect obstacles
+- Captures live camera feed and performs basic **line following** using OpenCV
+- Integrates all decision-making in a single loop
+
 ## 🤝 Contributors
 - @mestan4 - Tolgahan Mestan Kaya 
 - @caginhakan1 - Çağın Hakan Denizci
