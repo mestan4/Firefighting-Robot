@@ -1,0 +1,42 @@
+# --- 1. Kütüphaneleri Kur ---
+!pip install ultralytics roboflow
+
+# --- 2. Roboflow Verisini Çek ---
+from roboflow import Roboflow
+rf = Roboflow(api_key="YOUR_API_KEY")  # <<<<< BURAYA API KEY'INI GIR
+project = rf.workspace("imagedetection-berzc").project("fire-detection-sejra-hrhec")
+dataset = project.version(3).download("yolov8")
+
+# --- 3. YOLOv8 ile Model Eğitimi (Optimizasyonlu) ---
+from ultralytics import YOLO
+
+model = YOLO("yolov8s.pt")  # YOLOv8n çok hafif olur, s daha iyi denge sağlar
+model.train(
+    data="{}/data.yaml".format(dataset.location),
+    epochs=100,                    # İyi bir başlangıç noktası
+    imgsz=640,                     # Görsel boyutu – Colab GPU için ideal
+    batch=16,                      # T4 GPU için dengeli
+    patience=20,                   # Early stopping sabrı
+    cos_lr=True,                   # Cosine annealing learning rate
+    lr0=0.005,                     # Başlangıç öğrenme oranı
+    lrf=0.01,                      # En düşük öğrenme oranı
+    weight_decay=0.0005,           # Ağırlık zayıflatma
+    optimizer='SGD',               # Alternatif optimizasyon
+    dropout=0.05,                  # Overfitting önlemi
+    name="yolov8s-fire-optimal"
+)
+
+# --- 4. Değerlendirme (Validation) ---
+metrics = model.val()
+print("mAP@0.5:", metrics.box.map50)
+print("mAP@0.5:0.95:", metrics.box.map)
+
+# --- 5. Tahmin (Inference) ---
+from google.colab import files
+uploaded = files.upload()
+
+for fn in uploaded.keys():
+    results = model.predict(source=fn, conf=0.25, save=True)
+    results[0].show()
+
+# Sonuçlar klasörü: runs/detect/predict/
